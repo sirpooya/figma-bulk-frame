@@ -2,7 +2,8 @@
 
 # Frame-It
 A Plugin for Figma to easily wrap a new frame around layers you've selected.
-<a href="https://www.figma.com/community/plugin/847762563509209322/Frame-It">
+
+<a href="https://www.figma.com/community/plugin/847762563509209322/Frame-It">Install Plugin</a>
 
 This plugin reacts like a bulk Frame Selection function (⌥⌘G) with frame size choice.
 

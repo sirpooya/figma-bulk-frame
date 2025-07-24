@@ -6,6 +6,10 @@
     margin-top: 20px;
     background: var(--figma-color-bg);
     color: var(--figma-color-text);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
   
   main#plugin {
@@ -85,8 +89,6 @@ input {
     /* flex: 0 0 auto; */
   }
 
-
-
   .button-container {
     display: flex;
     gap: 8px;
@@ -109,6 +111,7 @@ input {
     width: 100%;
     /* max-width: 50%; */
     flex: 1;
+    cursor: pointer;
   }
 
   
@@ -131,6 +134,8 @@ input {
     gap: 8px;
     align-items: center;
     justify-content: flex-start;
+    cursor: pointer;
+    width: fit-content;
   }
   
   .switch-label {
@@ -190,13 +195,13 @@ input {
 <main id="plugin">
   <!-- <p id="plugin-title">Wrap selected layers in square frame</p> -->
   
-  <div class="switch-container">
-    <label class="switch">
+  <label class="switch-container" for="frameIndividually">
+    <div class="switch">
       <input type="checkbox" id="frameIndividually">
       <span class="slider"></span>
-    </label>
-    <span class="switch-label">Keep layer size</span>
-  </div>
+    </div>
+    <span class="switch-label">Automatic size</span>
+  </label>
   
   <div class="input-container">
     <label for="count">Custom size:</label>
@@ -205,7 +210,7 @@ input {
     </div>
   </div>
   <div class="button-container">
-    <button id="create">Apply</button>
+    <button id="create">Frame Layers</button>
     <!-- <button id="cancel">Cancel</button> -->
   </div>
 </main>
@@ -219,6 +224,15 @@ onmessage = (event) => {
     textbox.value = event.data.pluginMessage.size;
     // Set cursor position to end of value
     textbox.setSelectionRange(textbox.value.length, textbox.value.length);
+  }
+  if (event.data.pluginMessage.type === 'update-selection-count') {
+    const button = document.getElementById('create');
+    const count = event.data.pluginMessage.count;
+    if (count === 0) {
+      button.textContent = 'Frame Layers';
+    } else {
+      button.textContent = `Frame ${count} Layers`;
+    }
   }
 }
 

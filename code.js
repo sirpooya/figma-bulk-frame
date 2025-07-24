@@ -214,10 +214,12 @@ if (figma.command === "frame-using-layer-size") {
         themeColors: true 
     });
 
-    // Update UI with new max frame size
+    // Update UI with new max frame size and selection count
     function updateUISize() {
         const maxSize = calculateMaxFrameSize();
+        const selectionCount = figma.currentPage.selection.length;
         figma.ui.postMessage({ type: 'update-size', size: maxSize });
+        figma.ui.postMessage({ type: 'update-selection-count', count: selectionCount });
     }
 
     // Initialize with current selection
@@ -250,10 +252,12 @@ if (figma.command === "frame-using-layer-size") {
         themeColors: true 
     });
 
-    // Update UI with new max frame size
+    // Update UI with new max frame size and selection count
     function updateUISize() {
         const maxSize = calculateMaxFrameSize();
+        const selectionCount = figma.currentPage.selection.length;
         figma.ui.postMessage({ type: 'update-size', size: maxSize });
+        figma.ui.postMessage({ type: 'update-selection-count', count: selectionCount });
     }
 
     // Initialize with current selection

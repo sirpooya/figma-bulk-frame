@@ -7,20 +7,12 @@
   "editorType": ["figma"],
   "menu": [
     {
-      "name": "Frame All (Fixed Square Size)",
-      "command": "frame-using-custom-size"
-    },
-    {
-      "name": "Frame All (Match Layer Size)",
-      "command": "frame-using-layer-size"
-    },
-    {
-      "name": "Custom size",
+      "name": "Frame Selected > Custom",
       "command": "frame-with-ui"
     },
     {
-      "name": "Bulk scale",
-      "command": "set-constraints-scale"
+      "name": "Frame Selected > Automatically",
+      "command": "frame-using-layer-size"
     }
   ]
 }

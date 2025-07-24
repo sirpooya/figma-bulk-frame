@@ -3,54 +3,85 @@
   body {
     font: 12px sans-serif;
     /* text-align: center; */
-    margin: 20px;
+    margin: 16px;
+    background: var(--figma-color-bg);
+    color: var(--figma-color-text);
   }
-
-  main>div {
+  
+  main#plugin {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    align-items: stretch;
-    justify-content: flex-start;
+    gap: 18px;
+  }
+    
+  .plugin-title {
+    color: var(--figma-color-text);
+    margin-block-start: 0em;
+    margin-block-end: 0em;
   }
 
   button {
     border-radius: 5px;
-    background: white;
-    color: black;
+    background: var(--figma-color-bg);
+    color: var(--figma-color-text);
     border: none;
     padding: 8px 15px;
-    margin: 0 5px;
-    box-shadow: inset 0 0 0 1px black;
+    box-shadow: inset 0 0 0 1px var(--figma-color-border-strong);
     outline: none;
+    width: 100%;
+    max-width: 50%;
+    flex: 1;
   }
   #create {
-    box-shadow: inset 0 0 0 1px #18A0FB;
-    background: #18A0FB;
-    color: white;
+    box-shadow: inset 0 0 0 1px var(--figma-color-bg-brand);
+    background: var(--figma-color-bg-brand);
+    color: var(--figma-color-text-onbrand);
   }
+  
   input {
     border: none;
     outline: none;
     border-radius: 5px;
     padding: 8px;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+    background: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    box-shadow: inset 0 0 0 1px var(--figma-color-border);
   }
-  input:hover { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
-  input:focus { box-shadow: inset 0 0 0 1px #18A0FB; }
-  button:focus { box-shadow: inset 0 0 0 2px #18A0FB; }
-  #create:hover { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3); }
-  #create:focus { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.3); }
+  input:hover { box-shadow: inset 0 0 0 1px var(--figma-color-border-strong); }
+  input:focus { box-shadow: inset 0 0 0 1px var(--figma-color-border-brand-strong); }
+  button:focus { box-shadow: inset 0 0 0 2px var(--figma-color-border-brand); }
+  #create:hover { box-shadow: inset 0 0 0 1px var(--figma-color-border-brand-strong); }
+  #create:focus { box-shadow: inset 0 0 0 2px var(--figma-color-border-brand-strong); }
+  
+  .button-container {
+    display: flex;
+    gap: 8px;
+    flex-direction: row;
+    width: 100%;
+    align-items: stretch;
+    justify-content: flex-start;
+    margin-top: 2px;
+  }
+  
+  .input-container {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
 </style>
 
 <link href="ui.css" rel="stylesheet"> 
 
 <main id="plugin">
-  <h3>Wrap in Frame</h3>
-  <p>Size: <input id="count" value="event.data.pluginMessage"> px</p>
-  <br>
-  <button id="create">Create</button>
-  <button id="cancel">Cancel</button>
+  <h3 class="plugin-title">Wrap in Frame</h3>
+  <div class="input-container">Size: <input id="count" value="event.data.pluginMessage"> px</div>
+  <div class="button-container">
+    <button id="create">Create</button>
+    <button id="cancel">Cancel</button>
+  </div>
 </main>
 
 <script>

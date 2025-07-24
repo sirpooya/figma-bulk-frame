@@ -1,9 +1,3 @@
-// This plugin will open a modal to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (see documentation).
-// This shows the HTML page in "ui.html".
 var newSize = 0;
 // Globarl Function: Calculate size even after rotation
 function sizeAfterRotation(size, degrees) {
@@ -83,7 +77,12 @@ for (const node of figma.currentPage.selection) {
         newSize = curSize;
     // console.log(newSize);
 }
-figma.showUI(__html__);
+
+figma.showUI(__html__, { 
+    width: 280, 
+    height: 148,
+    themeColors: true 
+  });
 figma.ui.postMessage(Math.round(newSize));
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the

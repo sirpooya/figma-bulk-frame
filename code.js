@@ -37,6 +37,33 @@ function capOfRotation(size, degrees) {
     cap[3] = (size[1] * Math.cos(radians));
     return cap;
 }
+// Function: Calculate offset for rotated object positioning
+function calculateRotationOffset(node) {
+    if (node.rotation === 0) {
+        return { x: 0, y: 0 };
+    }
+    
+    // Convert rotation to radians
+    var radians = node.rotation * Math.PI / 180;
+    var cos = Math.cos(radians);
+    var sin = Math.sin(radians);
+    
+    // Calculate how much the top-left corner (vertex 'a') shifts when rotated
+    // For positive rotation: the top-left corner moves down and right
+    // For negative rotation: the top-left corner moves up and left
+    var offsetX = (node.width * (1 - cos) + node.height * sin) / 2;
+    var offsetY = (node.width * sin + node.height * (1 - cos)) / 2;
+    
+    return { x: offsetX, y: offsetY };
+}
+
+// Function: Calculate frame position for rotated objects
+function calculateFramePosition(node) {
+    // Always position frame at the original node position
+    // The frame should be positioned where the node originally was
+    return { x: node.x, y: node.y };
+}
+
 // Close Function: writing for Read-only properties
 function clone(val) {
     return JSON.parse(JSON.stringify(val));
@@ -102,68 +129,75 @@ figma.ui.onmessage = msg => {
         // figma.currentPage.selection = nodes;
         // figma.viewport.scrollAndZoomIntoView(nodes);
         var selections = [];
+        var groups = [];
+        
+        // First, wrap each node into its own group
         for (const node of figma.currentPage.selection) {
             if ("opacity" in node) {
-                const frame = figma.createFrame();
-                var size = msg.count;
-                frame.resize(size, size);
-                frame.fills = [];
-                // Calculate the rotated dimensions of the node
-                var rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
-                var rotatedW = Math.round(rotatedSize[0]);
-                var rotatedH = Math.round(rotatedSize[1]);
-                
-                // Position frame at the center of the original node
-                frame.x = node.x + (node.width / 2) - (size / 2);
-                frame.y = node.y + (node.height / 2) - (size / 2);
-                
-                // Add node to frame first, then adjust position
-                frame.appendChild(node);
-                
-                // Use the normalized dimensions for centering
-                var rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
-                var normalizedWidth = rotatedSize[0];
-                var normalizedHeight = rotatedSize[1];
-                
-                // Simple and reliable centering for all rotation angles
-                node.x = (size - normalizedWidth) / 2;
-                node.y = (size - normalizedHeight) / 2;
-                
-                // Ensure values are not negative
-                if (node.x < 0) node.x = 0;
-                if (node.y < 0) node.y = 0;
-                
-                // Then use Figma's layout constraints to center it
-                try {
-                    // Set constraints to center the node
-                    if (node.constraints) {
-                        node.constraints.horizontal = "CENTER";
-                        node.constraints.vertical = "CENTER";
-                    }
-                } catch (error) {
-                    console.log("Could not set center constraints:", error);
-                }
-                frame.name = node.name;
-                
-                // Set constraints to scale both horizontally and vertically
-                try {
-                    // Create a new constraints object
-                    const constraints = {
-                        horizontal: "SCALE",
-                        vertical: "SCALE"
-                    };
-                    
-                    // Apply constraints using the proper method
-                    if (node.type === "RECTANGLE" || node.type === "ELLIPSE" || node.type === "TEXT" || node.type === "VECTOR" || node.type === "STAR" || node.type === "LINE" || node.type === "POLYGON") {
-                        // For these node types, we can set constraints
-                        node.constraints = constraints;
-                    }
-                } catch (error) {
-                    console.log("Could not set constraints:", error);
-                }
-                // deselectAll(figma.currentPage);
-                selections.push(frame);
+                const group = figma.group([node], figma.currentPage);
+                groups.push(group);
             }
+        }
+        
+        // Now create frames for each group
+        for (const group of groups) {
+            const frame = figma.createFrame();
+            var size = msg.count;
+            frame.resize(size, size);
+            frame.fills = [];
+            
+            // Use the group's position to calculate frame position
+            var framePosition = calculateFramePosition(group);
+            frame.x = framePosition.x;
+            frame.y = framePosition.y;
+            
+            // Get the node from the group
+            const node = group.children[0];
+            
+            // 2. Calculate the offset to keep the node in its absolute position
+            // Get group's current position and dimensions
+            var groupX = group.x;
+            var groupY = group.y;
+            var groupWidth = group.width;
+            var groupHeight = group.height;
+            
+            // Calculate the offset needed to center the group in the frame
+            var offsetX = (size - groupWidth) / 2;
+            var offsetY = (size - groupHeight) / 2;
+            
+            // 3. Move the group into the frame
+            frame.appendChild(group);
+            
+            // 4. Set the group position to center it in the frame
+            group.x = offsetX;
+            group.y = offsetY;
+            
+            figma.notify("x offset: " + offsetX.toFixed(2) + ", y offset: " + offsetY.toFixed(2));
+            
+            // 5. Ungroup the node to leave it directly in the frame
+            figma.ungroup(group);
+            
+            // 5. Position is now set correctly as relative coordinates
+            frame.name = node.name;
+            
+            // Set constraints to scale both horizontally and vertically
+            try {
+                // Create a new constraints object
+                const constraints = {
+                    horizontal: "SCALE",
+                    vertical: "SCALE"
+                };
+                
+                // Apply constraints using the proper method
+                if (node.type === "RECTANGLE" || node.type === "ELLIPSE" || node.type === "TEXT" || node.type === "VECTOR" || node.type === "STAR" || node.type === "LINE" || node.type === "POLYGON") {
+                    // For these node types, we can set constraints
+                    node.constraints = constraints;
+                }
+            } catch (error) {
+                console.log("Could not set constraints:", error);
+            }
+            
+            selections.push(frame);
         }
         
 

@@ -17,6 +17,10 @@
     {
       "name": "Frame with custom settings",
       "command": "frame-with-ui"
+    },
+    {
+      "name": "Set constraints to scale",
+      "command": "set-constraints-scale"
     }
   ]
 }

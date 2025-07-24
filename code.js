@@ -42,7 +42,7 @@ for (const node of figma.currentPage.selection) {
 
 figma.showUI(__html__, { 
     width: 280, 
-    height: 148,
+    height: 156,
     themeColors: true 
   });
 figma.ui.postMessage(Math.ceil(maxFrameSize));
@@ -77,7 +77,17 @@ figma.ui.onmessage = msg => {
         // Now create frames for each group
         for (const nodeGroup of nodeGroups) {
             const newFrame = figma.createFrame();
-            var frameSize = msg.count;
+            
+            // Determine frame size based on switch setting
+            var frameSize;
+            if (msg.frameIndividually) {
+                // Use individual group dimensions
+                frameSize = Math.max(nodeGroup.width, nodeGroup.height);
+            } else {
+                // Use the input size
+                frameSize = msg.count;
+            }
+            
             newFrame.resize(frameSize, frameSize);
             newFrame.fills = [];
             
@@ -104,7 +114,7 @@ figma.ui.onmessage = msg => {
             nodeGroup.x = centerOffsetX;
             nodeGroup.y = centerOffsetY;
             
-            figma.notify("x offset: " + centerOffsetX.toFixed(2) + ", y offset: " + centerOffsetY.toFixed(2));
+            // figma.notify("x offset: " + centerOffsetX.toFixed(2) + ", y offset: " + centerOffsetY.toFixed(2));
             
             // Ungroup the node to leave it directly in the frame
             figma.ungroup(nodeGroup);

@@ -1,5 +1,3 @@
-var maxFrameSize = 0;
-
 // Calculate size after rotation
 function sizeAfterRotation(size, degrees) {
     degrees = degrees % 180;
@@ -29,15 +27,29 @@ function selectFrames(page, selections) {
     page.selection = [];
     figma.currentPage.selection = selections;
 }
-for (const node of figma.currentPage.selection) {
-    var currentSize = 0;
-    var rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
-    if (rotatedSize[0] > rotatedSize[1])
-        currentSize = rotatedSize[0];
-    else
-        currentSize = rotatedSize[1];
-    if (currentSize > maxFrameSize)
-        maxFrameSize = currentSize;
+
+// Calculate maximum frame size from current selection
+function calculateMaxFrameSize() {
+    let maxFrameSize = 0;
+    
+    for (const node of figma.currentPage.selection) {
+        let currentSize = 0;
+        const rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
+        if (rotatedSize[0] > rotatedSize[1])
+            currentSize = rotatedSize[0];
+        else
+            currentSize = rotatedSize[1];
+        if (currentSize > maxFrameSize)
+            maxFrameSize = currentSize;
+    }
+    
+    return Math.ceil(maxFrameSize);
+}
+
+// Update UI with new max frame size
+function updateUISize() {
+    const maxSize = calculateMaxFrameSize();
+    figma.ui.postMessage({ type: 'update-size', size: maxSize });
 }
 
 figma.showUI(__html__, { 
@@ -45,7 +57,14 @@ figma.showUI(__html__, {
     height: 156,
     themeColors: true 
   });
-figma.ui.postMessage(Math.ceil(maxFrameSize));
+
+// Initialize with current selection
+updateUISize();
+
+// Monitor selection changes
+figma.on('selectionchange', () => {
+    updateUISize();
+});
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.

@@ -160,11 +160,13 @@
 <script>
 
 onmessage = (event) => {
-  console.log("max size is", event.data.pluginMessage)
-  const textbox = document.getElementById('count');
-  textbox.value = event.data.pluginMessage;
-  // Set cursor position to end of value
-  textbox.setSelectionRange(textbox.value.length, textbox.value.length);
+  if (event.data.pluginMessage.type === 'update-size') {
+    console.log("max size is", event.data.pluginMessage.size)
+    const textbox = document.getElementById('count');
+    textbox.value = event.data.pluginMessage.size;
+    // Set cursor position to end of value
+    textbox.setSelectionRange(textbox.value.length, textbox.value.length);
+  }
 }
 
 // Handle switch functionality

@@ -7,19 +7,19 @@
   "editorType": ["figma"],
   "menu": [
     {
-      "name": "Frame using layer size",
-      "command": "frame-using-layer-size"
-    },
-    {
-      "name": "Frame using custom size",
+      "name": "Frame All (Fixed Square Size)",
       "command": "frame-using-custom-size"
     },
     {
-      "name": "Frame with custom settings",
+      "name": "Frame All (Match Layer Size)",
+      "command": "frame-using-layer-size"
+    },
+    {
+      "name": "Custom size",
       "command": "frame-with-ui"
     },
     {
-      "name": "Set constraints to scale",
+      "name": "Bulk scale",
       "command": "set-constraints-scale"
     }
   ]

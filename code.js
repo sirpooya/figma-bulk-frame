@@ -209,8 +209,8 @@ if (figma.command === "frame-using-layer-size") {
 } else if (figma.command === "frame-with-ui") {
     // Show UI for custom settings
     figma.showUI(__html__, { 
-        width: 280, 
-        height: 156,
+        width: 280,
+        height: 160,
         themeColors: true 
     });
 
@@ -246,7 +246,7 @@ if (figma.command === "frame-using-layer-size") {
     // Default UI mode - show the interface
     figma.showUI(__html__, { 
         width: 280, 
-        height: 156,
+        height: 160,
         themeColors: true 
     });
 

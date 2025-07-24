@@ -83,7 +83,7 @@ figma.showUI(__html__, {
     height: 148,
     themeColors: true 
   });
-figma.ui.postMessage(Math.round(newSize));
+figma.ui.postMessage(Math.ceil(newSize));
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
@@ -107,45 +107,67 @@ figma.ui.onmessage = msg => {
                 const frame = figma.createFrame();
                 var size = msg.count;
                 frame.resize(size, size);
-                const fills = clone(frame.fills);
-                fills[0].visible = false;
-                frame.fills = fills;
-                // Find out if layer is rotated
+                frame.fills = [];
+                // Calculate the rotated dimensions of the node
                 var rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
-                var cap = capOfRotation([node.width, node.height], node.rotation);
                 var rotatedW = Math.round(rotatedSize[0]);
                 var rotatedH = Math.round(rotatedSize[1]);
-                if (rotatedW != node.width && rotatedH != node.height) {
-                    frame.x = node.x - rotatedW / 2;
-                    frame.y = node.y - rotatedH / 2;
-                    // console.log(cap[0]+cap[1]+cap[2]+cap[3]);
-                    node.x = (size - rotatedW) / 2;
-                    node.y = (size - rotatedH) / 2;
-                    if (node.rotation >= 90) {
-                        node.x = ((size - rotatedW) / 2) + cap[2];
-                        node.y = (size - rotatedH) / 2 + cap[0] + cap[3];
-                    }
-                    else if (node.rotation < 0) {
-                        node.x = (size - rotatedW) / 2 + cap[1];
-                        node.y = (size - rotatedH) / 2;
-                    }
-                    else if (node.rotation <= -90) {
-                        node.x = (size - rotatedW) / 2 + cap[1] + cap[2];
-                        node.y = (size - rotatedH) / 2 + cap[3];
-                    }
-                }
-                else {
-                    frame.x = node.x;
-                    frame.y = node.y;
-                    node.x = (size - node.width) / 2;
-                    node.y = (size - node.height) / 2;
-                }
+                
+                // Position frame at the center of the original node
+                frame.x = node.x + (node.width / 2) - (size / 2);
+                frame.y = node.y + (node.height / 2) - (size / 2);
+                
+                // Add node to frame first, then adjust position
                 frame.appendChild(node);
+                
+                // Use the normalized dimensions for centering
+                var rotatedSize = sizeAfterRotation([node.width, node.height], node.rotation);
+                var normalizedWidth = rotatedSize[0];
+                var normalizedHeight = rotatedSize[1];
+                
+                // Simple and reliable centering for all rotation angles
+                node.x = (size - normalizedWidth) / 2;
+                node.y = (size - normalizedHeight) / 2;
+                
+                // Ensure values are not negative
+                if (node.x < 0) node.x = 0;
+                if (node.y < 0) node.y = 0;
+                
+                // Then use Figma's layout constraints to center it
+                try {
+                    // Set constraints to center the node
+                    if (node.constraints) {
+                        node.constraints.horizontal = "CENTER";
+                        node.constraints.vertical = "CENTER";
+                    }
+                } catch (error) {
+                    console.log("Could not set center constraints:", error);
+                }
                 frame.name = node.name;
+                
+                // Set constraints to scale both horizontally and vertically
+                try {
+                    // Create a new constraints object
+                    const constraints = {
+                        horizontal: "SCALE",
+                        vertical: "SCALE"
+                    };
+                    
+                    // Apply constraints using the proper method
+                    if (node.type === "RECTANGLE" || node.type === "ELLIPSE" || node.type === "TEXT" || node.type === "VECTOR" || node.type === "STAR" || node.type === "LINE" || node.type === "POLYGON") {
+                        // For these node types, we can set constraints
+                        node.constraints = constraints;
+                    }
+                } catch (error) {
+                    console.log("Could not set constraints:", error);
+                }
                 // deselectAll(figma.currentPage);
                 selections.push(frame);
             }
         }
+        
+
+        
         selectFrames(figma.currentPage, selections);
     }
     // Make sure to close the plugin when you're done. Otherwise the plugin will

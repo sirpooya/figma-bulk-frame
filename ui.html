@@ -14,7 +14,7 @@
     gap: 18px;
   }
     
-  .plugin-title {
+  #plugin-title {
     color: var(--figma-color-text);
     margin-block-start: 0em;
     margin-block-end: 0em;
@@ -76,7 +76,7 @@
 <link href="ui.css" rel="stylesheet"> 
 
 <main id="plugin">
-  <h3 class="plugin-title">Wrap in Frame</h3>
+  <p id="plugin-title">Wrap selected layers in square frame</p>
   <div class="input-container">Size: <input id="count" value="event.data.pluginMessage"> px</div>
   <div class="button-container">
     <button id="create">Create</button>

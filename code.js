@@ -46,123 +46,187 @@ function calculateMaxFrameSize() {
     return Math.ceil(maxFrameSize);
 }
 
-// Update UI with new max frame size
-function updateUISize() {
-    const maxSize = calculateMaxFrameSize();
-    figma.ui.postMessage({ type: 'update-size', size: maxSize });
+// Create frames for selected nodes
+function createFramesForSelection(frameSize, useIndividualSizes = false) {
+    var createdFrames = [];
+    var nodeGroups = [];
+    
+    // First, wrap each node into its own group
+    for (const selectedNode of figma.currentPage.selection) {
+        if ("opacity" in selectedNode) {
+            const nodeGroup = figma.group([selectedNode], figma.currentPage);
+            nodeGroups.push(nodeGroup);
+        }
+    }
+    
+    // Now create frames for each group
+    for (const nodeGroup of nodeGroups) {
+        const newFrame = figma.createFrame();
+        
+        // Determine frame size based on setting
+        var actualFrameSize;
+        if (useIndividualSizes) {
+            // Use individual group dimensions
+            actualFrameSize = Math.max(nodeGroup.width, nodeGroup.height);
+        } else {
+            // Use the provided frame size
+            actualFrameSize = frameSize;
+        }
+        
+        newFrame.resize(actualFrameSize, actualFrameSize);
+        newFrame.fills = [];
+        
+        // Get the node from the group
+        const originalNode = nodeGroup.children[0];
+        
+        // Calculate the offset to keep the node in its absolute position
+        var groupWidth = nodeGroup.width;
+        var groupHeight = nodeGroup.height;
+        
+        // Calculate the offset needed to center the group in the frame
+        var centerOffsetX = (actualFrameSize - groupWidth) / 2;
+        var centerOffsetY = (actualFrameSize - groupHeight) / 2;
+        
+        // Use the group's position to calculate frame position, adjusted by center offset
+        var framePosition = calculateFramePosition(nodeGroup);
+        newFrame.x = framePosition.x - centerOffsetX;
+        newFrame.y = framePosition.y - centerOffsetY;
+        
+        // Move the group into the frame
+        newFrame.appendChild(nodeGroup);
+        
+        // Set the group position to center it in the frame
+        nodeGroup.x = centerOffsetX;
+        nodeGroup.y = centerOffsetY;
+        
+        // Ungroup the node to leave it directly in the frame
+        figma.ungroup(nodeGroup);
+        
+        // Set frame name
+        newFrame.name = originalNode.name;
+        
+        // Set constraints to scale both horizontally and vertically
+        try {
+            const constraints = {
+                horizontal: "SCALE",
+                vertical: "SCALE"
+            };
+            
+            if (originalNode.type === "RECTANGLE" || originalNode.type === "ELLIPSE" || originalNode.type === "TEXT" || originalNode.type === "VECTOR" || originalNode.type === "STAR" || originalNode.type === "LINE" || originalNode.type === "POLYGON") {
+                originalNode.constraints = constraints;
+            }
+        } catch (error) {
+            console.log("Could not set constraints:", error);
+        }
+        
+        createdFrames.push(newFrame);
+    }
+    
+    return createdFrames;
 }
 
-figma.showUI(__html__, { 
-    width: 280, 
-    height: 156,
-    themeColors: true 
-  });
-
-// Initialize with current selection
-updateUISize();
-
-// Monitor selection changes
-figma.on('selectionchange', () => {
-    updateUISize();
-});
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
-figma.ui.onmessage = msg => {
-    // One way of distinguishing between different types of messages sent from
-    // your HTML page is to use an object with a "type" property like this.
-    if (msg.type === 'create-frame') {
-        // const nodes: SceneNode[] = [];
-        // for (let i = 0; i < msg.count; i++) {
-        // const rect = figma.createRectangle();
-        // rect.x = i * 150;
-        // rect.fills = [{type: 'SOLID', color: {r: 1, g: 0.5, b: 0}}];
-        // figma.currentPage.appendChild(rect);
-        // nodes.push(rect);
-        // }
-        // figma.currentPage.selection = nodes;
-        // figma.viewport.scrollAndZoomIntoView(nodes);
-        var createdFrames = [];
-        var nodeGroups = [];
-        
-        // First, wrap each node into its own group
-        for (const selectedNode of figma.currentPage.selection) {
-            if ("opacity" in selectedNode) {
-                const nodeGroup = figma.group([selectedNode], figma.currentPage);
-                nodeGroups.push(nodeGroup);
-            }
-        }
-        
-        // Now create frames for each group
-        for (const nodeGroup of nodeGroups) {
-            const newFrame = figma.createFrame();
-            
-            // Determine frame size based on switch setting
-            var frameSize;
-            if (msg.frameIndividually) {
-                // Use individual group dimensions
-                frameSize = Math.max(nodeGroup.width, nodeGroup.height);
-            } else {
-                // Use the input size
-                frameSize = msg.count;
-            }
-            
-            newFrame.resize(frameSize, frameSize);
-            newFrame.fills = [];
-            
-            // Get the node from the group
-            const originalNode = nodeGroup.children[0];
-            
-            // Calculate the offset to keep the node in its absolute position
-            var groupWidth = nodeGroup.width;
-            var groupHeight = nodeGroup.height;
-            
-            // Calculate the offset needed to center the group in the frame
-            var centerOffsetX = (frameSize - groupWidth) / 2;
-            var centerOffsetY = (frameSize - groupHeight) / 2;
-            
-            // Use the group's position to calculate frame position, adjusted by center offset
-            var framePosition = calculateFramePosition(nodeGroup);
-            newFrame.x = framePosition.x - centerOffsetX;
-            newFrame.y = framePosition.y - centerOffsetY;
-            
-            // Move the group into the frame
-            newFrame.appendChild(nodeGroup);
-            
-            // Set the group position to center it in the frame
-            nodeGroup.x = centerOffsetX;
-            nodeGroup.y = centerOffsetY;
-            
-            // figma.notify("x offset: " + centerOffsetX.toFixed(2) + ", y offset: " + centerOffsetY.toFixed(2));
-            
-            // Ungroup the node to leave it directly in the frame
-            figma.ungroup(nodeGroup);
-            
-            // Set frame name
-            newFrame.name = originalNode.name;
-            
-            // Set constraints to scale both horizontally and vertically
-            try {
-                const constraints = {
-                    horizontal: "SCALE",
-                    vertical: "SCALE"
-                };
-                
-                if (originalNode.type === "RECTANGLE" || originalNode.type === "ELLIPSE" || originalNode.type === "TEXT" || originalNode.type === "VECTOR" || originalNode.type === "STAR" || originalNode.type === "LINE" || originalNode.type === "POLYGON") {
-                    originalNode.constraints = constraints;
-                }
-            } catch (error) {
-                console.log("Could not set constraints:", error);
-            }
-            
-            createdFrames.push(newFrame);
-        }
-        
-
-        
-        selectFrames(figma.currentPage, createdFrames);
+// Command: Frame using layer size (individual sizes)
+function frameUsingLayerSize() {
+    if (figma.currentPage.selection.length === 0) {
+        figma.notify("Please select at least one layer");
+        return;
     }
-    // Make sure to close the plugin when you're done. Otherwise the plugin will
-    // keep running, which shows the cancel button at the bottom of the screen.
+    
+    const createdFrames = createFramesForSelection(0, true); // true for individual sizes
+    selectFrames(figma.currentPage, createdFrames);
+    figma.notify(`Created ${createdFrames.length} frames using individual layer sizes`);
+}
+
+// Command: Frame using custom size (max size)
+function frameUsingCustomSize() {
+    if (figma.currentPage.selection.length === 0) {
+        figma.notify("Please select at least one layer");
+        return;
+    }
+    
+    const maxSize = calculateMaxFrameSize();
+    const createdFrames = createFramesForSelection(maxSize, false); // false for custom size
+    selectFrames(figma.currentPage, createdFrames);
+    figma.notify(`Created ${createdFrames.length} frames using max size: ${maxSize}px`);
+}
+
+// Check if we're running as a command or with UI
+if (figma.command === "frame-using-layer-size") {
+    frameUsingLayerSize();
     figma.closePlugin();
-};
+} else if (figma.command === "frame-using-custom-size") {
+    frameUsingCustomSize();
+    figma.closePlugin();
+} else if (figma.command === "frame-with-ui") {
+    // Show UI for custom settings
+    figma.showUI(__html__, { 
+        width: 280, 
+        height: 156,
+        themeColors: true 
+    });
+
+    // Update UI with new max frame size
+    function updateUISize() {
+        const maxSize = calculateMaxFrameSize();
+        figma.ui.postMessage({ type: 'update-size', size: maxSize });
+    }
+
+    // Initialize with current selection
+    updateUISize();
+
+    // Monitor selection changes
+    figma.on('selectionchange', () => {
+        updateUISize();
+    });
+
+    // Calls to "parent.postMessage" from within the HTML page will trigger this
+    // callback. The callback will be passed the "pluginMessage" property of the
+    // posted message.
+    figma.ui.onmessage = msg => {
+        // One way of distinguishing between different types of messages sent from
+        // your HTML page is to use an object with a "type" property like this.
+        if (msg.type === 'create-frame') {
+            const createdFrames = createFramesForSelection(msg.count, msg.frameIndividually);
+            selectFrames(figma.currentPage, createdFrames);
+        }
+        // Make sure to close the plugin when you're done. Otherwise the plugin will
+        // keep running, which shows the cancel button at the bottom of the screen.
+        figma.closePlugin();
+    };
+} else {
+    // Default UI mode - show the interface
+    figma.showUI(__html__, { 
+        width: 280, 
+        height: 156,
+        themeColors: true 
+    });
+
+    // Update UI with new max frame size
+    function updateUISize() {
+        const maxSize = calculateMaxFrameSize();
+        figma.ui.postMessage({ type: 'update-size', size: maxSize });
+    }
+
+    // Initialize with current selection
+    updateUISize();
+
+    // Monitor selection changes
+    figma.on('selectionchange', () => {
+        updateUISize();
+    });
+
+    // Calls to "parent.postMessage" from within the HTML page will trigger this
+    // callback. The callback will be passed the "pluginMessage" property of the
+    // posted message.
+    figma.ui.onmessage = msg => {
+        // One way of distinguishing between different types of messages sent from
+        // your HTML page is to use an object with a "type" property like this.
+        if (msg.type === 'create-frame') {
+            const createdFrames = createFramesForSelection(msg.count, msg.frameIndividually);
+            selectFrames(figma.currentPage, createdFrames);
+        }
+        // Make sure to close the plugin when you're done. Otherwise the plugin will
+        // keep running, which shows the cancel button at the bottom of the screen.
+        figma.closePlugin();
+    };
+}

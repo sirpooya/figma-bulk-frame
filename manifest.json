@@ -3,5 +3,20 @@
   "id": "847762563509209322",
   "api": "1.0.0",
   "main": "code.js",
-  "ui": "ui.html"
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "menu": [
+    {
+      "name": "Frame using layer size",
+      "command": "frame-using-layer-size"
+    },
+    {
+      "name": "Frame using custom size",
+      "command": "frame-using-custom-size"
+    },
+    {
+      "name": "Frame with custom settings",
+      "command": "frame-with-ui"
+    }
+  ]
 }
